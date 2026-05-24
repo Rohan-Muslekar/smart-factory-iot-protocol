@@ -57,8 +57,10 @@ class SmartFactoryProducer:
         Note: pika BlockingConnection uses a simpler API — see pika docs for
               confirm_delivery() with the blocking adapter.
         """
-        # TODO: implement this method
-        raise NotImplementedError
+        params = get_connection_params()
+        self._connection = pika.BlockingConnection(params)
+        self._channel = self._connection.channel()
+        self._channel.confirm_delivery()
 
     def disconnect(self) -> None:
         if self._connection and not self._connection.is_closed:
@@ -77,16 +79,21 @@ class SmartFactoryProducer:
                     remove tag from _unconfirmed
           - If NACK: log "CONFIRM nack (LOST) delivery_tag={tag}" at WARNING level
         """
-        # TODO: implement this callback
-        pass
+        tag = method_frame.method.delivery_tag
+        if isinstance(method_frame.method, pika.spec.Basic.Ack):
+            log.info("CONFIRM ack delivery_tag=%d", tag)
+            self._confirmed += 1
+            self._unconfirmed.discard(tag)
+        else:
+            log.warning("CONFIRM nack (LOST) delivery_tag=%d", tag)
 
     def on_return(self, channel, method, properties, body) -> None:
         """
         TODO 3: Called when mandatory=True and no queue matched the routing key.
         Log: "RETURNED (no route): routing_key={method.routing_key} reply={method.reply_text}"
         """
-        # TODO: implement this callback
-        pass
+        log.warning("RETURNED (no route): routing_key=%s reply=%s",
+                    method.routing_key, method.reply_text)
 
     # ── Routing Key ────────────────────────────────────────────────────────────
 
@@ -101,8 +108,9 @@ class SmartFactoryProducer:
             factory.line1.temperature.critical  (> 85°C)
             factory.line2.vibration
         """
-        # TODO: implement this method
-        raise NotImplementedError
+        if sensor == "temperature" and value > CRITICAL_THRESHOLD:
+            return f"factory.{line}.temperature.critical"
+        return f"factory.{line}.{sensor}"
 
     # ── Publishing ─────────────────────────────────────────────────────────────
 
@@ -123,8 +131,41 @@ class SmartFactoryProducer:
           - Log: "[{routing_key}]  val={value:.2f} {unit}  delivery_mode={mode}"
           - Return the payload dict
         """
-        # TODO: implement this method
-        raise NotImplementedError
+        cfg = SENSOR_CONFIG[sensor]
+        value = round(cfg["base"] + random.gauss(0, cfg["noise"]), 3)
+        self._published += 1
+        seq = self._published
+        payload = {
+            "value": value,
+            "unit": cfg["unit"],
+            "line": line,
+            "sensor": sensor,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "seq": seq,
+        }
+        routing_key = self._routing_key(line, sensor, value)
+        delivery_mode = 2 if cfg["persistent"] else 1
+        properties = pika.BasicProperties(
+            delivery_mode=delivery_mode,
+            expiration="60000",
+            content_type="application/json",
+            timestamp=int(time.time()),
+        )
+        try:
+            self._channel.basic_publish(
+                exchange=EXCHANGE_TELEMETRY,
+                routing_key=routing_key,
+                body=json.dumps(payload).encode(),
+                properties=properties,
+                mandatory=True,
+            )
+            self._confirmed += 1
+        except pika.exceptions.UnroutableError:
+            log.warning("Message unroutable: %s", routing_key)
+        self._unconfirmed.add(seq)
+        log.info("[%s]  val=%.2f %s  delivery_mode=%d",
+                 routing_key, value, cfg["unit"], delivery_mode)
+        return payload
 
     # ── Main Loop ──────────────────────────────────────────────────────────────
 
