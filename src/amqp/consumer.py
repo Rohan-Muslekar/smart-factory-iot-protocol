@@ -50,8 +50,15 @@ class SmartFactoryConsumer:
           - Register on_message as the callback for QUEUE_ALL
             with auto_ack=False
         """
-        # TODO: implement this method
-        raise NotImplementedError
+        params = get_connection_params()
+        self._connection = pika.BlockingConnection(params)
+        self._channel = self._connection.channel()
+        self._channel.basic_qos(prefetch_count=PREFETCH_COUNT)
+        self._channel.basic_consume(
+            queue=QUEUE_ALL,
+            on_message_callback=self.on_message,
+            auto_ack=False,
+        )
 
     # ── Message Handler ────────────────────────────────────────────────────────
 
@@ -80,8 +87,35 @@ class SmartFactoryConsumer:
                  Increment self._processed
           4. Every DLX_POLL_EVERY seconds, call _poll_dlx()
         """
-        # TODO: implement this method
-        pass
+        tag = method.delivery_tag
+        routing_key = method.routing_key
+
+        try:
+            payload = json.loads(body)
+        except (json.JSONDecodeError, TypeError):
+            log.warning("Invalid JSON, NACKing tag=%d", tag)
+            channel.basic_nack(delivery_tag=tag, requeue=False)
+            self._failed += 1
+            return
+
+        if routing_key.endswith(".critical"):
+            self._print_critical_alert(routing_key, payload)
+            self._alerts_seen += 1
+            channel.basic_ack(delivery_tag=tag)
+            return
+
+        if random.random() < FAILURE_RATE:
+            channel.basic_nack(delivery_tag=tag, requeue=False)
+            log.info("NACK (simulated failure) tag=%d key=%s", tag, routing_key)
+            self._failed += 1
+        else:
+            channel.basic_ack(delivery_tag=tag)
+            log.info("[PROCESSED] %s  val=%s  tag=%d",
+                     routing_key, payload.get("value", "?"), tag)
+            self._processed += 1
+
+        if time.time() - self._last_dlx_poll >= DLX_POLL_EVERY:
+            self._poll_dlx()
 
     def _print_critical_alert(self, routing_key: str, payload: dict) -> None:
         """
@@ -93,8 +127,11 @@ class SmartFactoryConsumer:
           ║  Timestamp:   {timestamp}
           ╚══════════════════════════════════════╝
         """
-        # TODO: implement this method
-        pass
+        print("╔══════════════════════════════════════╗")
+        print(f"║  ⚠ CRITICAL ALERT — {routing_key}")
+        print(f"║  Temperature: {payload.get('value', '?')}°C")
+        print(f"║  Timestamp:   {payload.get('timestamp', '?')}")
+        print("╚══════════════════════════════════════╝")
 
     # ── DLX Inspector ─────────────────────────────────────────────────────────
 
@@ -117,8 +154,28 @@ class SmartFactoryConsumer:
         Note: basic_get is synchronous — this is safe to call from on_message
               since we're in the same thread.
         """
-        # TODO: implement this method
-        pass
+        count = 0
+        while True:
+            method, props, body = self._channel.basic_get(QUEUE_DLX, auto_ack=True)
+            if method is None:
+                break
+            count += 1
+            try:
+                payload = json.loads(body)
+            except (json.JSONDecodeError, TypeError):
+                payload = {}
+            x_death = []
+            if props.headers and "x-death" in props.headers:
+                x_death = props.headers["x-death"]
+            print(f"[DEAD LETTER] routing_key={method.routing_key}")
+            if x_death:
+                d = x_death[0]
+                print(f"  Original queue: {d.get('queue', '?')}")
+                print(f"  Death reason:   {d.get('reason', '?')}")
+                print(f"  Death count:    {d.get('count', '?')}")
+            print(f"  Value:          {payload.get('value', '?')}")
+        log.info("DLX poll complete — %d dead-lettered messages inspected", count)
+        self._last_dlx_poll = time.time()
 
     # ── Run ────────────────────────────────────────────────────────────────────
 
