@@ -13,9 +13,11 @@
 | MQTT QoS 0 | 100 | 100 | 0.0% | 0 | 1.3 |
 | MQTT QoS 1 | 100 | 100 | 0.0% | 0 | 1.3 |
 | MQTT QoS 2 | 100 | 100 | 0.0% | 0 | 2.6 |
-| CoAP NON | - | - | - | - | - |
-| CoAP CON | - | - | - | - | - |
-| AMQP (confirms off) | - | - | - | - | - |
+| CoAP NON | N/A | N/A | N/A | N/A | N/A |
+| CoAP CON | N/A | N/A | N/A | N/A | N/A |
+| AMQP (confirms off) | N/A | N/A | N/A | N/A | N/A |
+
+> **Note:** The provided QoS test harness (`test_qos_loss.py`) only measures MQTT QoS levels 0, 1, and 2. No equivalent loss experiment was included for CoAP or AMQP. CoAP reliability is demonstrated through CON/NON message types in the observer implementation and packet captures. AMQP delivery guarantees are verified through publisher confirms and consumer ACK/NACK in Tasks 3.2 and 3.3.
 
 **Analysis Questions:**
 

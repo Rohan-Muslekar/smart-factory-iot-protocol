@@ -21,7 +21,8 @@ services:
     container_name: smartfactory-rabbitmq
     hostname: smartfactory-rabbit
     ports:
-      - "5672:5672"    # AMQP
+      - "5672:5672"    # AMQP (plain)
+      - "5671:5671"    # AMQPS (TLS)
       - "15672:15672"  # Management UI (http://localhost:15672  guest/guest)
     environment:
       RABBITMQ_DEFAULT_USER: guest
@@ -29,6 +30,8 @@ services:
       RABBITMQ_DEFAULT_VHOST: /
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+      - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./certs:/etc/rabbitmq/certs:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]

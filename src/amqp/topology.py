@@ -9,7 +9,9 @@ Run with:  python -m src.amqp.topology
 """
 
 import logging
+import os
 import ssl
+
 import pika
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-8s  %(message)s")
@@ -18,8 +20,11 @@ log = logging.getLogger(__name__)
 # ── Connection parameters ─────────────────────────────────────────────────────
 BROKER_HOST   = "localhost"
 BROKER_PORT   = 5672          # plain AMQP (use 5671 for TLS in Tasks 3.2/3.3)
+BROKER_PORT_TLS = 5671
 VHOST         = "/"
 CREDENTIALS   = pika.PlainCredentials("guest", "guest")
+
+CERTS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "certs")
 
 
 def get_connection_params(host=BROKER_HOST, port=BROKER_PORT) -> pika.ConnectionParameters:
@@ -27,6 +32,24 @@ def get_connection_params(host=BROKER_HOST, port=BROKER_PORT) -> pika.Connection
         host=host, port=port,
         virtual_host=VHOST,
         credentials=CREDENTIALS,
+        heartbeat=60,
+    )
+
+
+def get_tls_connection_params(host=BROKER_HOST, port=BROKER_PORT_TLS) -> pika.ConnectionParameters:
+    """Build connection parameters with TLS and SASL EXTERNAL authentication."""
+    ssl_context = ssl.create_default_context(cafile=os.path.join(CERTS_DIR, "ca.crt"))
+    ssl_context.load_cert_chain(
+        certfile=os.path.join(CERTS_DIR, "client.crt"),
+        keyfile=os.path.join(CERTS_DIR, "client.key"),
+    )
+    ssl_options = pika.SSLOptions(ssl_context, host)
+    credentials = pika.credentials.ExternalCredentials()
+    return pika.ConnectionParameters(
+        host=host, port=port,
+        virtual_host=VHOST,
+        credentials=credentials,
+        ssl_options=ssl_options,
         heartbeat=60,
     )
 
@@ -96,7 +119,7 @@ def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel)
         queue=QUEUE_ALL, durable=True,
         arguments={
             "x-max-length": 10000,
-            "x-overflow": "drop-head",
+            "x-overflow": "reject-publish",
             "x-dead-letter-exchange": EXCHANGE_DLX,
             "x-dead-letter-routing-key": "dead",
         },

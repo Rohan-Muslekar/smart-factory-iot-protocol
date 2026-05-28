@@ -17,7 +17,7 @@ import pika.exceptions
 
 from src.amqp.topology import (
     EXCHANGE_TELEMETRY, QUEUE_TEMPERATURE,
-    get_connection_params
+    get_connection_params, get_tls_connection_params
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-8s  %(message)s")
@@ -57,8 +57,14 @@ class SmartFactoryProducer:
         Note: pika BlockingConnection uses a simpler API - see pika docs for
               confirm_delivery() with the blocking adapter.
         """
-        params = get_connection_params()
-        self._connection = pika.BlockingConnection(params)
+        try:
+            params = get_tls_connection_params()
+            self._connection = pika.BlockingConnection(params)
+            log.info("Connected to RabbitMQ over TLS (SASL EXTERNAL)")
+        except Exception:
+            params = get_connection_params()
+            self._connection = pika.BlockingConnection(params)
+            log.info("Connected to RabbitMQ over plain AMQP (TLS unavailable)")
         self._channel = self._connection.channel()
         self._channel.confirm_delivery()
 
