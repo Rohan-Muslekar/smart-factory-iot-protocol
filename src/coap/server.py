@@ -1,5 +1,5 @@
 """
-Module 1 Assignment — Task 2.1
+Module 1 Assignment - Task 2.1
 CoAP Sensor Resource Server
 
 Complete all TODO sections. The resource classes must match the
@@ -129,7 +129,7 @@ class ManifestResource(resource.Resource):
       - The payload should be a realistic-looking firmware manifest
         (list of sensor firmware versions, checksums, update URLs, etc.)
       - aiocoap handles Block2 fragmentation automatically if the payload
-        exceeds the negotiated block size — you just need to return the full payload
+        exceeds the negotiated block size - you just need to return the full payload
     """
 
     async def render_get(self, request: Message) -> Message:

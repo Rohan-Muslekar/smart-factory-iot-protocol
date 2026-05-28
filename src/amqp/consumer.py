@@ -1,5 +1,5 @@
 """
-Module 1 Assignment — Task 3.3
+Module 1 Assignment - Task 3.3
 AMQP Consumer with Manual ACK and DLX Inspection
 
 Complete all TODO sections.
@@ -122,13 +122,13 @@ class SmartFactoryConsumer:
         TODO 3: Print a formatted critical temperature alert.
         Format:
           ╔══════════════════════════════════════╗
-          ║  ⚠ CRITICAL ALERT — {routing_key}
+          ║  ⚠ CRITICAL ALERT - {routing_key}
           ║  Temperature: {value}°C
           ║  Timestamp:   {timestamp}
           ╚══════════════════════════════════════╝
         """
         print("╔══════════════════════════════════════╗")
-        print(f"║  ⚠ CRITICAL ALERT — {routing_key}")
+        print(f"║  ⚠ CRITICAL ALERT - {routing_key}")
         print(f"║  Temperature: {payload.get('value', '?')}°C")
         print(f"║  Timestamp:   {payload.get('timestamp', '?')}")
         print("╚══════════════════════════════════════╝")
@@ -150,8 +150,8 @@ class SmartFactoryConsumer:
                     Death reason:   {x-death[0]["reason"]}
                     Death count:    {x-death[0]["count"]}
                     Value:          {payload.get("value", "?")}
-          - Log: "DLX poll complete — {n} dead-lettered messages inspected"
-        Note: basic_get is synchronous — this is safe to call from on_message
+          - Log: "DLX poll complete - {n} dead-lettered messages inspected"
+        Note: basic_get is synchronous - this is safe to call from on_message
               since we're in the same thread.
         """
         count = 0
@@ -174,7 +174,7 @@ class SmartFactoryConsumer:
                 print(f"  Death reason:   {d.get('reason', '?')}")
                 print(f"  Death count:    {d.get('count', '?')}")
             print(f"  Value:          {payload.get('value', '?')}")
-        log.info("DLX poll complete — %d dead-lettered messages inspected", count)
+        log.info("DLX poll complete - %d dead-lettered messages inspected", count)
         self._last_dlx_poll = time.time()
 
     # ── Run ────────────────────────────────────────────────────────────────────
@@ -189,7 +189,7 @@ class SmartFactoryConsumer:
         finally:
             if self._connection and not self._connection.is_closed:
                 self._connection.close()
-            log.info("Final stats — processed: %d  failed(DLX): %d  alerts: %d",
+            log.info("Final stats - processed: %d  failed(DLX): %d  alerts: %d",
                      self._processed, self._failed, self._alerts_seen)
 
 

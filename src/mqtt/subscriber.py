@@ -1,5 +1,5 @@
 """
-Module 1 Assignment — Task 1.2
+Module 1 Assignment - Task 1.2
 MQTT Wildcard Subscriber
 
 Complete all TODO sections. Do not modify the function signatures.
@@ -114,7 +114,7 @@ class SmartFactorySubscriber:
               - Increment self._alerts_fired
               - Print:
                   ╔══════════════════════════════════════╗
-                  ║  ⚠ CRITICAL ALERT — {topic}
+                  ║  ⚠ CRITICAL ALERT - {topic}
                   ║  Temperature: {value}°C  (threshold: {CRITICAL_TEMP}°C)
                   ║  Time: {timestamp from payload or now}
                   ╚══════════════════════════════════════╝
@@ -123,7 +123,7 @@ class SmartFactorySubscriber:
             self._alerts_fired += 1
             ts = payload.get("timestamp", datetime.now(timezone.utc).isoformat())
             print("╔══════════════════════════════════════╗")
-            print(f"║  ⚠ CRITICAL ALERT — {topic}")
+            print(f"║  ⚠ CRITICAL ALERT - {topic}")
             print(f"║  Temperature: {payload['value']}°C  (threshold: {CRITICAL_TEMP}°C)")
             print(f"║  Time: {ts}")
             print("╚══════════════════════════════════════╝")

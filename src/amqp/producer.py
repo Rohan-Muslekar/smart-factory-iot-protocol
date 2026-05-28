@@ -1,5 +1,5 @@
 """
-Module 1 Assignment — Task 3.2
+Module 1 Assignment - Task 3.2
 AMQP Producer with Publisher Confirms
 
 Complete all TODO sections.
@@ -52,9 +52,9 @@ class SmartFactoryProducer:
           - Open a channel and call channel.confirm_delivery()
           - Register on_delivery_confirmed as the ack/nack callback:
               self._channel.add_on_return_callback(self.on_return)
-              For confirms, use a nacks_callback — see pika docs for
+              For confirms, use a nacks_callback - see pika docs for
               channel.add_on_ack_callback / add_on_nack_callback
-        Note: pika BlockingConnection uses a simpler API — see pika docs for
+        Note: pika BlockingConnection uses a simpler API - see pika docs for
               confirm_delivery() with the blocking adapter.
         """
         params = get_connection_params()
@@ -65,7 +65,7 @@ class SmartFactoryProducer:
     def disconnect(self) -> None:
         if self._connection and not self._connection.is_closed:
             self._connection.close()
-        log.info("Producer stats — published: %d  confirmed: %d  unconfirmed: %d",
+        log.info("Producer stats - published: %d  confirmed: %d  unconfirmed: %d",
                  self._published, self._confirmed, len(self._unconfirmed))
 
     # ── Callbacks ──────────────────────────────────────────────────────────────

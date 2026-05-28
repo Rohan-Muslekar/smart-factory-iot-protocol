@@ -1,5 +1,5 @@
 """
-Module 1 Assignment — Task 2.2
+Module 1 Assignment - Task 2.2
 CoAP Observer Client
 
 Complete all TODO sections.
@@ -118,7 +118,7 @@ class FactoryObserver:
         """
         TODO 3: Perform a GET on /factory/manifest and reassemble Block2.
         Requirements:
-          - aiocoap handles Block2 reassembly automatically — just await the response
+          - aiocoap handles Block2 reassembly automatically - just await the response
           - Log: "Manifest received: {len(payload)} bytes"
           - Parse as JSON and count the number of top-level items
           - Log: "Firmware entries in manifest: {count}"

@@ -1,9 +1,9 @@
 """
-Module 1 Assignment — Task 1.1
+Module 1 Assignment - Task 1.1
 MQTT Sensor Publisher
 
 Complete all TODO sections. Do not modify the function signatures
-or the SensorReading dataclass — the tests depend on them.
+or the SensorReading dataclass - the tests depend on them.
 """
 
 import json
@@ -71,7 +71,7 @@ class SmartFactoryPublisher:
               payload = "offline"
               qos     = 1
               retain  = True
-            (Note: paho only supports a single LWT per client — set it for line1;
+            (Note: paho only supports a single LWT per client - set it for line1;
              the tests only verify line1 LWT)
         """
         client = mqtt.Client(client_id=CLIENT_ID, clean_session=False)

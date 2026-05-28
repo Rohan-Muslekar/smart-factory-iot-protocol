@@ -1,147 +1,104 @@
-# Module 1 Assignment — SmartFactory IoT Protocol Integration
+# SmartFactory IoT Protocol Integration
 
-**Real-Time Data Analytics for IoT** · Graduate Course · Module 1
+**Course:** Real-Time Data Analytics for IoT, Module 2 (Foundations)
+**Student:** Rohan Muslekar (101006689)
+**Date:** 2026-05-28
 
 ---
+
+## Overview
+
+Multi-protocol IoT data pipeline for SmartFactory Inc., connecting sensor telemetry from two production lines to a backend broker using MQTT, CoAP, and AMQP. Includes wire-level packet analysis and a protocol comparison report.
+
+---
+
+## Reports
+
+- [Packet Analysis (Task 4)](report/packet_analysis.md) - Wire-level annotations of MQTT, CoAP, and AMQP packets from live tshark captures
+- [Protocol Comparison Report (Task 5)](report/comparison_report.md) - QoS comparison, CoAP-HTTP proxy mapping, protocol recommendations, and reflection
+
+---
+
+## Prerequisites
+
+- Python 3.10+
+- Docker & Docker Compose
+- Wireshark / tshark (for packet captures)
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies and start Docker services
-bash setup.sh
+# 1. Create virtual environment and install dependencies
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-# 2. Read the full assignment specification
-open Module1_Assignment.docx
+# 2. Start infrastructure (Mosquitto + RabbitMQ)
+docker compose up -d
 
-# 3. Work through the tasks in order:
-#    Task 1 → src/mqtt/publisher.py  + src/mqtt/subscriber.py
-#    Task 2 → src/coap/server.py     + src/coap/observer.py
-#    Task 3 → src/amqp/topology.py   + src/amqp/producer.py   + src/amqp/consumer.py
-#    Task 4 → bash scripts/capture.sh → annotate report/packet_analysis.md
-#    Task 5 → report/comparison_report.md
-
-# 4. Run all tests before submitting
+# 3. Run all tests (30 total)
 pytest tests/ -v --tb=short
 ```
-
----
-
-## Repository Structure
-
-```
-module1-assignment/
-├── src/
-│   ├── mqtt/
-│   │   ├── publisher.py      ← Task 1.1  Fill in all TODO sections
-│   │   └── subscriber.py     ← Task 1.2  Fill in all TODO sections
-│   ├── coap/
-│   │   ├── server.py         ← Task 2.1  Fill in all TODO sections
-│   │   └── observer.py       ← Task 2.2  Fill in all TODO sections
-│   └── amqp/
-│       ├── topology.py       ← Task 3.1  Fill in all TODO sections
-│       ├── producer.py       ← Task 3.2  Fill in all TODO sections
-│       └── consumer.py       ← Task 3.3  Fill in all TODO sections
-│
-├── tests/
-│   ├── mqtt/
-│   │   ├── test_publisher.py   ← Do not modify
-│   │   └── test_qos_loss.py    ← Do not modify (run with -s for output table)
-│   ├── coap/
-│   │   └── test_server.py      ← Do not modify
-│   └── amqp/
-│       └── test_topology.py    ← Do not modify
-│
-├── report/
-│   ├── packet_analysis.md    ← Task 4  Fill in the annotation tables
-│   └── comparison_report.md  ← Task 5  Write your analysis here
-│
-├── captures/                 ← Task 4  pcap files go here (git-ignored)
-├── scripts/
-│   └── capture.sh            ← Task 4  Run to capture traffic
-├── config/
-│   └── mosquitto.conf        ← Mosquitto broker configuration
-├── docker-compose.yml        ← Infrastructure: Mosquitto + RabbitMQ + InfluxDB
-├── requirements.txt
-├── pytest.ini
-└── setup.sh                  ← Run this first
-```
-
----
 
 ## Running Individual Components
 
 ```bash
-# Task 1 — MQTT
+# MQTT
 python -m src.mqtt.publisher       # Terminal 1
 python -m src.mqtt.subscriber      # Terminal 2
 
-# Task 2 — CoAP
+# CoAP
 python -m src.coap.server          # Terminal 1
 python -m src.coap.observer        # Terminal 2
 
-# Task 3 — AMQP (run in order)
-python -m src.amqp.topology        # Once — sets up RabbitMQ topology
+# AMQP (run topology first)
+python -m src.amqp.topology        # Once: sets up RabbitMQ exchanges/queues
 python -m src.amqp.producer        # Terminal 1
 python -m src.amqp.consumer        # Terminal 2
-
-# Task 4 — Packet capture (with publisher/server running)
-bash scripts/capture.sh
 ```
-
----
 
 ## Running Tests
 
 ```bash
-# All tests
-pytest tests/ -v
-
-# Individual task tests
-pytest tests/mqtt/ -v
-pytest tests/coap/ -v
-pytest tests/amqp/ -v
-
-# QoS experiment with output table (Task 1.3)
-pytest tests/mqtt/test_qos_loss.py -v -s
+pytest tests/ -v                            # All tests
+pytest tests/mqtt/ -v                       # MQTT tests (11)
+pytest tests/coap/ -v                       # CoAP tests (10)
+pytest tests/amqp/ -v                       # AMQP tests (8)
+pytest tests/mqtt/test_qos_loss.py -v -s    # QoS experiment with output table
 ```
-
----
 
 ## Infrastructure
 
 | Service | Port | URL |
 |---------|------|-----|
-| Mosquitto MQTT | 1883 | mqtt://localhost:1883 |
-| RabbitMQ AMQP | 5672 | amqp://localhost:5672 |
+| Mosquitto MQTT | 1883 | `mqtt://localhost:1883` |
+| RabbitMQ AMQP | 5672 | `amqp://localhost:5672` |
 | RabbitMQ Management | 15672 | http://localhost:15672 (guest/guest) |
-| CoAP server (Python) | 5683 | coap://localhost:5683 |
-| InfluxDB (optional) | 8086 | http://localhost:8086 |
+| CoAP Server | 5683 | `coap://localhost:5683` |
 
 ```bash
-# Start all services
-docker compose up -d
-
-# Stop all services
-docker compose down
-
-# View logs
-docker compose logs -f mosquitto
-docker compose logs -f rabbitmq
+docker compose up -d      # Start services
+docker compose down        # Stop services
 ```
 
----
+## Repository Structure
 
-## Submission Checklist
-
-Before zipping and submitting:
-
-- [ ] All 7 source files have TODO sections completed
-- [ ] `pytest tests/ -v` passes (or partial passes documented)
-- [ ] `captures/` contains mqtt.pcap, coap.pcap, amqp.pcap
-- [ ] `report/packet_analysis.md` — all annotation tables filled in
-- [ ] `report/comparison_report.md` — all sections written (1500–2000 words total)
-- [ ] README.md updated with your name and any notes for the marker
-
----
-
-*Graduate Course: Real-Time Data Analytics for IoT · Module 1*
+```
+├── src/
+│   ├── mqtt/
+│   │   ├── publisher.py        ← Task 1.1: Multi-sensor MQTT publisher
+│   │   └── subscriber.py       ← Task 1.2: Wildcard subscriber with alerts
+│   ├── coap/
+│   │   ├── server.py           ← Task 2.1: Observable resources + Block2 manifest
+│   │   └── observer.py         ← Task 2.2: Concurrent observer + stale detection
+│   └── amqp/
+│       ├── topology.py         ← Task 3.1: Exchange/queue/binding declarations
+│       ├── producer.py         ← Task 3.2: Publisher with confirms + critical routing
+│       └── consumer.py         ← Task 3.3: Consumer with NACK + DLX polling
+├── report/
+│   ├── packet_analysis.md      ← Task 4: Wire-level protocol annotations
+│   └── comparison_report.md    ← Task 5: Protocol comparison report
+├── captures/                   ← Packet captures (git-ignored)
+├── tests/                      ← Pre-written test suite (do not modify)
+└── docker-compose.yml
+```

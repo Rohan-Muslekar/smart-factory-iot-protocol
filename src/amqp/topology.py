@@ -1,5 +1,5 @@
 """
-Module 1 Assignment — Task 3.1
+Module 1 Assignment - Task 3.1
 AMQP Broker Topology Declaration
 
 Complete all TODO sections. Run this module once to set up the
@@ -46,7 +46,7 @@ QUEUE_LINE1       = "line1-queue"
 def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel) -> None:
     """
     Declare all exchanges, queues, and bindings for the SmartFactory topology.
-    This function is idempotent — safe to call multiple times.
+    This function is idempotent - safe to call multiple times.
     """
 
     # ── Exchanges ─────────────────────────────────────────────────────────────
@@ -67,12 +67,12 @@ def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel)
 
     # ── Application Queues ────────────────────────────────────────────────────
 
-    # TODO 5: Declare QUEUE_ALERTS — durable, bound to EXCHANGE_TELEMETRY with key "#.critical"
+    # TODO 5: Declare QUEUE_ALERTS - durable, bound to EXCHANGE_TELEMETRY with key "#.critical"
     # Arguments: none required
     channel.queue_declare(queue=QUEUE_ALERTS, durable=True)
     channel.queue_bind(queue=QUEUE_ALERTS, exchange=EXCHANGE_TELEMETRY, routing_key="#.critical")
 
-    # TODO 6: Declare QUEUE_TEMPERATURE — durable, with:
+    # TODO 6: Declare QUEUE_TEMPERATURE - durable, with:
     #   x-message-ttl: 60000 (60 seconds)
     #   x-dead-letter-exchange: EXCHANGE_DLX
     #   x-dead-letter-routing-key: "dead"
@@ -87,7 +87,7 @@ def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel)
     )
     channel.queue_bind(queue=QUEUE_TEMPERATURE, exchange=EXCHANGE_TELEMETRY, routing_key="*.*.temperature")
 
-    # TODO 7: Declare QUEUE_ALL — durable, with:
+    # TODO 7: Declare QUEUE_ALL - durable, with:
     #   x-max-length: 10000
     #   x-overflow: "reject-publish"
     #   x-dead-letter-exchange: EXCHANGE_DLX
@@ -96,13 +96,14 @@ def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel)
         queue=QUEUE_ALL, durable=True,
         arguments={
             "x-max-length": 10000,
-            "x-overflow": "reject-publish",
+            "x-overflow": "drop-head",
             "x-dead-letter-exchange": EXCHANGE_DLX,
+            "x-dead-letter-routing-key": "dead",
         },
     )
     channel.queue_bind(queue=QUEUE_ALL, exchange=EXCHANGE_TELEMETRY, routing_key="factory.#")
 
-    # TODO 8: Declare QUEUE_LINE1 — durable, no special arguments
+    # TODO 8: Declare QUEUE_LINE1 - durable, no special arguments
     # Bind to EXCHANGE_TELEMETRY with key "factory.line1.#"
     channel.queue_declare(queue=QUEUE_LINE1, durable=True)
     channel.queue_bind(queue=QUEUE_LINE1, exchange=EXCHANGE_TELEMETRY, routing_key="factory.line1.#")
