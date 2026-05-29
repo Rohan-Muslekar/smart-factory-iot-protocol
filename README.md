@@ -36,7 +36,7 @@ pip install -r requirements.txt
 # 2. Start infrastructure (Mosquitto + RabbitMQ)
 docker compose up -d
 
-# 3. Run all tests (30 total)
+# 3. Run all tests (34 total)
 pytest tests/ -v --tb=short
 ```
 
@@ -61,8 +61,8 @@ python -m src.amqp.consumer        # Terminal 2
 
 ```bash
 pytest tests/ -v                            # All tests
-pytest tests/mqtt/ -v                       # MQTT tests (11)
-pytest tests/coap/ -v                       # CoAP tests (10)
+pytest tests/mqtt/ -v                       # MQTT tests (12)
+pytest tests/coap/ -v                       # CoAP tests (14)
 pytest tests/amqp/ -v                       # AMQP tests (8)
 pytest tests/mqtt/test_qos_loss.py -v -s    # QoS experiment with output table
 ```
